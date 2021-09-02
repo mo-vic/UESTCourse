@@ -24,30 +24,43 @@ def list_to_matrix(courses):
 
     for course_info in courses:
         course_name = course_info[0]
+
         classtime_and_classroom = course_info[3]
-        pattern = re.compile(r"星期..[1-9]-[1-9]{1,2}节")
+        pattern = re.compile(r"[0-9]{1,2}-[0-9]{1,2}周.*?\)")
         matched_str = pattern.findall(classtime_and_classroom)
 
-        for classtime in matched_str:
-            day = classtime[:3]
+        for classtime_and_classroom in matched_str:
+            pattern = re.compile(r"[0-9]{1,2}-[0-9]{1,2}周，")
+            weeks = pattern.findall(classtime_and_classroom)[0]
+            pattern = re.compile(r"\(.*\)")
+            classroom = pattern.findall(classtime_and_classroom)[0]
 
-            col_idx = {
-                '星期一': 0,
-                '星期二': 1,
-                '星期三': 2,
-                '星期四': 3,
-                '星期五': 4,
-                '星期六': 5,
-                '星期日': 6
-            }[day]
+            pattern = re.compile(r"星期..[1-9]-[1-9]{1,2}节")
+            matched_str = pattern.findall(classtime_and_classroom)
 
-            pattern = re.compile(r"[1-9]-[1-9]{1,2}")
-            begin, finish = pattern.findall(classtime)[0].split('-')
-            begin = int(begin) - 1
-            finish = int(finish)
+            for classtime in matched_str:
+                day = classtime[:3]
 
-            for row_idx in range(begin, finish):
-                course_matrix[row_idx][col_idx] = course_name
+                col_idx = {
+                    '星期一': 0,
+                    '星期二': 1,
+                    '星期三': 2,
+                    '星期四': 3,
+                    '星期五': 4,
+                    '星期六': 5,
+                    '星期日': 6
+                }[day]
+
+                pattern = re.compile(r"[1-9]-[1-9]{1,2}")
+                begin, finish = pattern.findall(classtime)[0].split('-')
+                begin = int(begin) - 1
+                finish = int(finish)
+
+                for row_idx in range(begin, finish):
+                    if not course_matrix[row_idx][col_idx]:
+                        course_matrix[row_idx][col_idx] = course_name + "<br />" + weeks + classroom
+                    else:
+                        course_matrix[row_idx][col_idx] = course_matrix[row_idx][col_idx] + "<br />" + weeks + classroom
 
     return course_matrix
 
