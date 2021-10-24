@@ -54,7 +54,17 @@
 
 
 
-### 三、To Do
+### 三、最优化选课
+
+如何在所有心仪的课程中，找到一个时间不冲突的排课方案，使得课程总学分最高呢？
+
+设每个课程是否选择为![x_i](img/def_x_i.png)，对应的学分为![c_i](img/def_c_i.png)，总学分![s](img/def_s.png)，对于时间冲突的课程![conflicting_x](img/def_conflicting_x.png)，有约束![constraint](img/def_constraint.png)，则该排课问题的数学模型为整数规划：
+
+![mathematical_model](img/mathematical_model.png)
+
+
+
+### 四、To Do
 
 - [ ] 优化时间冲突检测
 - [ ] 打包成可执行文件
