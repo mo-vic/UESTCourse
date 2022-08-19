@@ -72,7 +72,7 @@ def write_to_markdown(course_matrix):
     :return:
     """
 
-    with open("Schedule.md", 'a') as f:
+    with open("Schedule.md", 'a', encoding="utf-8") as f:
         print("|   | 星期一 | 星期二 | 星期三 | 星期四 | 星期五 | 星期六 | 星期天 |", file=f)
         print("| ---- | ------ | ------ | ------ | ------ | ------ | ------ | ------ |", file=f)
 
