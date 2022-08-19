@@ -138,10 +138,11 @@ def scheduling(key, courses_dict, time_placeholder, selected_times, selected_cou
                 rt_status["record_flag"] = True
                 trace_stack_copy = copy.deepcopy(trace_stack)
                 trace_stack_copy.append({"key": key, "type": "course", "flag": True})
+                first_key = trace_stack_copy[0]["key"]
                 if placeholder_conflict == False:
                     for placeholder in time_placeholder[::-1]:
                         trace_stack_copy.insert(0, {"key": placeholder, "flag": True, "type": "placeholder"})
-                conflicts.append(trace_stack_copy)
+                conflicts.append({"conflict_group": trace_stack_copy, "first_key": first_key})
 
 
 def run():
@@ -212,8 +213,10 @@ def run():
 
     if len(conflicts) != 0:
         print("下列课程之间或课程与预留时间之间发生冲突：")
-        for group_idx, conflict_group in enumerate(conflicts):
-            print("------------------第{0}组------------------".format(group_idx))
+        for group_idx, conflict_dict in enumerate(conflicts):
+            first_key = conflict_dict["first_key"]
+            conflict_group = conflict_dict["conflict_group"]
+            print("--------------第{0}组，以课程编号为{1}优先排课产生的冲突--------------".format(group_idx, first_key))
             for conflict in conflict_group:
                 conflict_key = conflict["key"]
                 conflict_type = conflict["type"]
@@ -221,10 +224,10 @@ def run():
                     print("课程编号：{0}".format(conflict_key))
                 else:
                     print("预留时间：{0}".format(conflict_key))
-            print("----------------------------------------")
+            print("--------------------------------------------------------------------")
 
         print("可根据个人情况，选择一个冲突分组，并在excel表中作调整后重新尝试运行此程序。")
-        print("建议优先考虑删除分组中的最后一项。")
+        print("每个冲突分组按照排课顺序进行排列，建议优先考虑删除分组中的最后一项。")
 
     print("排课结束，共生成{0}个可选排课方案。".format(ret["counter"]))
 
