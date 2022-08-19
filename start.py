@@ -89,7 +89,8 @@ def write_to_markdown(course_matrix):
         print(file=f)
 
 
-def scheduling(key, courses_dict, selected_times, selected_courses, trace_stack, conflicts, rt_status, ret):
+def scheduling(key, courses_dict, selected_times, selected_courses, offset, maximum, trace_stack, conflicts, rt_status,
+               ret):
     num_selection_per_key = len(courses_dict[key])
     for course_idx, course_info in enumerate(courses_dict[key]):
         classtime_and_classroom = course_info[3]  # 上课时间和地点
@@ -111,15 +112,16 @@ def scheduling(key, courses_dict, selected_times, selected_courses, trace_stack,
             courses_dict_copy = copy.deepcopy(courses_dict)
             courses_dict_copy.pop(key)
             if len(courses_dict_copy) == 0:
-                course_matrix = list_to_matrix(selected_courses_copy)
-                write_to_markdown(course_matrix)
-                ret["counter"] += 1
+                if offset <= ret["counter"] <= offset + maximum:
+                    course_matrix = list_to_matrix(selected_courses_copy)
+                    write_to_markdown(course_matrix)
+                    ret["counter"] += 1
             else:
                 # 供后续节点判断是否与祖先节点发生冲突
                 trace_stack.append({"key": key, "flag": course_idx == num_selection_per_key - 1, "type": "course"})
                 next_key = list(courses_dict_copy.keys())[0]
-                scheduling(next_key, courses_dict_copy, selected_times_copy, selected_courses_copy, trace_stack,
-                           conflicts, rt_status, ret)
+                scheduling(next_key, courses_dict_copy, selected_times_copy, selected_courses_copy, offset, maximum,
+                           trace_stack, conflicts, rt_status, ret)
                 trace_stack.pop(-1)
 
     # 冲突判断
@@ -140,6 +142,8 @@ def scheduling(key, courses_dict, selected_times, selected_courses, trace_stack,
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("--campus", type=str, default='', help="清水河或沙河")
+    parser.add_argument("--offset", type=int, default=0, help="从第`offset`个可选方案开始记录到MarkDown文件中")
+    parser.add_argument("--maximum", type=int, default=15, help="程序生成至多`maximum`个可选方案")
     parser.add_argument("--time_placeholder", type=str, action="append", default=[], help="时间占位符，设置格式示例：星期三第5-6节")
     parser.add_argument("--excel", type=str, default='', help="课程信息Excel文件所在路径")
     args = parser.parse_args()
@@ -201,7 +205,7 @@ def run():
     for k, v in courses_dict.items():
         rt_status = {"record_flag": False}  # 只保留最长冲突路径
         scheduling(k, copy.deepcopy(courses_dict), copy.deepcopy(args.time_placeholder),
-                   copy.deepcopy(selected_courses), trace_stack, conflicts, rt_status, ret)
+                   copy.deepcopy(selected_courses), args.offset, args.maximum, trace_stack, conflicts, rt_status, ret)
 
     if len(conflicts) != 0:
         print("下列课程之间或课程与预留时间之间发生冲突：")
