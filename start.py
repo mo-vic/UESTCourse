@@ -89,8 +89,9 @@ def write_to_markdown(course_matrix):
         print(file=f)
 
 
-def scheduling(key, courses_dict, selected_times, selected_courses):
-    for course_info in courses_dict[key]:
+def scheduling(key, courses_dict, selected_times, selected_courses, trace_stack, conflicts, rt_status, ret):
+    num_selection_per_key = len(courses_dict[key])
+    for course_idx, course_info in enumerate(courses_dict[key]):
         classtime_and_classroom = course_info[3]  # 上课时间和地点
         pattern = re.compile(r"星期..[1-9]-[1-9]{1,2}节")
         matched_str = pattern.findall(classtime_and_classroom)
@@ -112,9 +113,28 @@ def scheduling(key, courses_dict, selected_times, selected_courses):
             if len(courses_dict_copy) == 0:
                 course_matrix = list_to_matrix(selected_courses_copy)
                 write_to_markdown(course_matrix)
+                ret["counter"] += 1
             else:
+                # 供后续节点判断是否与祖先节点发生冲突
+                trace_stack.append({"key": key, "flag": course_idx == num_selection_per_key - 1, "type": "course"})
                 next_key = list(courses_dict_copy.keys())[0]
-                scheduling(next_key, courses_dict_copy, selected_times_copy, selected_courses_copy)
+                scheduling(next_key, courses_dict_copy, selected_times_copy, selected_courses_copy, trace_stack,
+                           conflicts, rt_status, ret)
+                trace_stack.pop(-1)
+
+    # 冲突判断
+    if ret["counter"] == 0 and rt_status["record_flag"] == False:
+        if len(trace_stack) != 0:
+            all_pass = True  # 确保所有祖先节点都遍历过了
+            for ancestor in trace_stack[::-1]:
+                ancestor_flag = ancestor["flag"]
+                all_pass = all_pass and ancestor_flag
+
+            if all_pass:
+                rt_status["record_flag"] = True
+                trace_stack_copy = copy.deepcopy(trace_stack)
+                trace_stack_copy.append({"key": key, "type": "course", "flag": True})
+                conflicts.append(trace_stack_copy)
 
 
 def run():
@@ -170,10 +190,36 @@ def run():
             if row_data[4] != '':
                 courses_dict[previous_course_id][-1][3] += ' ' + row_data[4]
 
+    conflicts = []
+    trace_stack = []
     selected_courses = []
+    ret = {"counter": 0}  # 返回状态字典
+
+    for placeholder in args.time_placeholder:
+        trace_stack.append({"key": placeholder, "flag": True, "type": "placeholder"})
+
     for k, v in courses_dict.items():
+        rt_status = {"record_flag": False}  # 只保留最长冲突路径
         scheduling(k, copy.deepcopy(courses_dict), copy.deepcopy(args.time_placeholder),
-                   copy.deepcopy(selected_courses))
+                   copy.deepcopy(selected_courses), trace_stack, conflicts, rt_status, ret)
+
+    if len(conflicts) != 0:
+        print("下列课程之间或课程与预留时间之间发生冲突：")
+        for group_idx, conflict_group in enumerate(conflicts):
+            print("------------------第{0}组------------------".format(group_idx))
+            for conflict in conflict_group:
+                conflict_key = conflict["key"]
+                conflict_type = conflict["type"]
+                if conflict_type == "course":
+                    print("课程编号：{0}".format(conflict_key))
+                else:
+                    print("预留时间：{0}".format(conflict_key))
+            print("----------------------------------------")
+
+        print("可根据个人情况，选择一个冲突分组，并在excel表中作调整后重新尝试运行此程序。")
+        print("建议优先考虑删除分组中的最后一项。")
+
+    print("排课结束，共生成{0}个可选排课方案。".format(ret["counter"]))
 
 
 if __name__ == "__main__":
