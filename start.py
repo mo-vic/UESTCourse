@@ -120,7 +120,7 @@ def scheduling(key, courses_dict, selected_times, selected_courses):
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument("--campus", type=str, default='', help="清水河或沙河")
-    parser.add_argument("--time_placeholder", type=str, action="append", help="时间占位符，设置格式示例：星期三第5-6节")
+    parser.add_argument("--time_placeholder", type=str, action="append", default=[], help="时间占位符，设置格式示例：星期三第5-6节")
     parser.add_argument("--excel", type=str, default='', help="课程信息Excel文件所在路径")
     args = parser.parse_args()
 
