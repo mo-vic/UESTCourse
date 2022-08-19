@@ -89,8 +89,9 @@ def write_to_markdown(course_matrix):
         print(file=f)
 
 
-def scheduling(key, courses_dict, selected_times, selected_courses, offset, maximum, trace_stack, conflicts, rt_status,
-               ret):
+def scheduling(key, courses_dict, time_placeholder, selected_times, selected_courses, offset, maximum, trace_stack,
+               conflicts, rt_status, ret):
+    placeholder_conflict = True  # 用于判断是否跟预留时间发生冲突
     num_selection_per_key = len(courses_dict[key])
     for course_idx, course_info in enumerate(courses_dict[key]):
         classtime_and_classroom = course_info[3]  # 上课时间和地点
@@ -99,7 +100,8 @@ def scheduling(key, courses_dict, selected_times, selected_courses, offset, maxi
 
         available = True
         for classtime in matched_str:
-            available = available and classtime not in selected_times
+            available = available and classtime not in selected_times and classtime not in time_placeholder
+            placeholder_conflict = placeholder_conflict and classtime not in time_placeholder
 
         if available:
             selected_times_copy = copy.deepcopy(selected_times)
@@ -120,8 +122,8 @@ def scheduling(key, courses_dict, selected_times, selected_courses, offset, maxi
                 # 供后续节点判断是否与祖先节点发生冲突
                 trace_stack.append({"key": key, "flag": course_idx == num_selection_per_key - 1, "type": "course"})
                 next_key = list(courses_dict_copy.keys())[0]
-                scheduling(next_key, courses_dict_copy, selected_times_copy, selected_courses_copy, offset, maximum,
-                           trace_stack, conflicts, rt_status, ret)
+                scheduling(next_key, courses_dict_copy, time_placeholder, selected_times_copy, selected_courses_copy,
+                           offset, maximum, trace_stack, conflicts, rt_status, ret)
                 trace_stack.pop(-1)
 
     # 冲突判断
@@ -136,6 +138,9 @@ def scheduling(key, courses_dict, selected_times, selected_courses, offset, maxi
                 rt_status["record_flag"] = True
                 trace_stack_copy = copy.deepcopy(trace_stack)
                 trace_stack_copy.append({"key": key, "type": "course", "flag": True})
+                if placeholder_conflict == False:
+                    for placeholder in time_placeholder[::-1]:
+                        trace_stack_copy.insert(0, {"key": placeholder, "flag": True, "type": "placeholder"})
                 conflicts.append(trace_stack_copy)
 
 
@@ -196,15 +201,13 @@ def run():
 
     conflicts = []
     trace_stack = []
+    selected_times = []
     selected_courses = []
     ret = {"counter": 0}  # 返回状态字典
 
-    for placeholder in args.time_placeholder:
-        trace_stack.append({"key": placeholder, "flag": True, "type": "placeholder"})
-
     for k, v in courses_dict.items():
         rt_status = {"record_flag": False}  # 只保留最长冲突路径
-        scheduling(k, copy.deepcopy(courses_dict), copy.deepcopy(args.time_placeholder),
+        scheduling(k, copy.deepcopy(courses_dict), copy.deepcopy(args.time_placeholder), copy.deepcopy(selected_times),
                    copy.deepcopy(selected_courses), args.offset, args.maximum, trace_stack, conflicts, rt_status, ret)
 
     if len(conflicts) != 0:
