@@ -114,10 +114,11 @@ def scheduling(key, courses_dict, time_placeholder, selected_times, selected_cou
             courses_dict_copy = copy.deepcopy(courses_dict)
             courses_dict_copy.pop(key)
             if len(courses_dict_copy) == 0:
-                if offset <= ret["counter"] <= offset + maximum:
+                if offset <= ret["total_counter"] <= offset + maximum:
                     course_matrix = list_to_matrix(selected_courses_copy)
                     write_to_markdown(course_matrix)
                     ret["counter"] += 1
+                    ret["total_counter"] += 1
             else:
                 # 供后续节点判断是否与祖先节点发生冲突
                 trace_stack.append({"key": key, "flag": course_idx == num_selection_per_key - 1, "type": "course"})
@@ -204,12 +205,13 @@ def run():
     trace_stack = []
     selected_times = []
     selected_courses = []
-    ret = {"counter": 0}  # 返回状态字典
+    ret = {"counter": 0, "total_counter": 0}  # 返回状态字典
 
     for k, v in courses_dict.items():
         rt_status = {"record_flag": False}  # 只保留最长冲突路径
         scheduling(k, copy.deepcopy(courses_dict), copy.deepcopy(args.time_placeholder), copy.deepcopy(selected_times),
                    copy.deepcopy(selected_courses), args.offset, args.maximum, trace_stack, conflicts, rt_status, ret)
+        ret["counter"] = 0
 
     if len(conflicts) != 0:
         print("下列课程之间或课程与预留时间之间发生冲突：")
@@ -229,7 +231,7 @@ def run():
         print("可根据个人情况，选择一个冲突分组，并在excel表中作调整后重新尝试运行此程序。")
         print("每个冲突分组按照排课顺序进行排列，建议优先考虑删除分组中的最后一项。")
 
-    print("排课结束，共生成{0}个可选排课方案。".format(ret["counter"]))
+    print("排课结束，共生成{0}个可选排课方案。".format(ret["total_counter"]))
 
 
 if __name__ == "__main__":
