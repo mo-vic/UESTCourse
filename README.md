@@ -3,6 +3,10 @@
 
 
 
+**UESTCourse开始向同学们征集图标啦，如果你有好的创意，欢迎在清水河畔私我哟~**
+
+
+
 ### 一、简介
 
 ​	UESTCer在选择了自己心仪的课程之后，往往需要根据自己的时间安排进行排课。在排课的时候，大多数课程都会有多个开班，将自己所选课程加入自己的课程表中并且不会发生冲突，同时又能保证特定时间段可以空闲出来（如：开组会），有时是件枯燥且烦恼的事情（如：想要的排课方案压根不存在）。
@@ -12,6 +16,10 @@
 
 
 ### 二、使用方式
+
+你可以使用以下两种方式中的任何一种进行排课。
+
+#### 2.1 源代码方式
 
 **注意**：如果你的计算机上没有`Python`，可以在[Python官网](https://www.python.org/downloads/)下载安装。
 
@@ -39,7 +47,7 @@
 4. 在`UESTCourse`文件夹目录下，打开命令提示符，运行如下命令：
 
    ```shell
-   python3 start.py --campus="清水河" --time_placeholder="星期三第5-6节" --time_placeholder="星期三第7-8节" --excel "Courses.xlsx"
+   python3 start.py --campus="清水河" --time_placeholder="星期三第5-6节" --time_placeholder="星期三第7-8节" --excel "Courses.xlsx" --offset 0 --maximum 20
    ```
 
    其中：
@@ -50,9 +58,42 @@
 
    ​	`--excel`：上述课程信息`Excel`文件的所在路径。
 
+   ​	`--offset`：跳过前`offset`个可选排课方案，从第`offset`个可选排课方案开始写入MarkDown文件。
+
+   ​	`--maximum`：最多生成`maximum`个可选排课方案，与`offset`参数结合可用于分段生成排课方案（如果不加以限制，当可选排课方案太多时，生成的MarkDown文件太大导致打不开）。
+
 5. 查看在`UESTCourse`文件夹目录下生成的`Schedule.md`，推荐使用[Typora](https://typora.io/)或[Visual Studio Code](https://code.visualstudio.com/)打开。
 
+#### 2.2 可执行文件方式
 
+1. 在[Release](https://github.com/mo-vic/UESTCourse/releases)页面下载可执行文件`UESTCourse.exe`。
+
+2. 从个人网上选课系统的选课页面复制课程信息，粘贴到一个新建的`Excel`文件里面，`Excel`表格头格式为：
+
+   | 课程编号 | 课程名称(班级) | 开课院系 | 任课教师 | 上课时间地点 | 校区 | 学时 | 学分 | 容纳人数 | 预选人数 |
+   | :------- | :------------- | :------- | :------- | :----------- | :--- | :--- | :--- | :------- | :------- |
+
+   **注意**：`Excel`文件中只保留自己想选的课程！！！
+
+3. 在`UESTCourse.exe`文件夹目录下，打开命令提示符，运行如下命令：
+
+   ```shell
+   UESTCourse.exe --campus="清水河" --time_placeholder="星期三第5-6节" --time_placeholder="星期三第7-8节" --excel "Courses.xlsx" --offset 0 --maximum 20
+   ```
+
+   其中：
+
+   ​	`--campus`：指的是校区，后面的参数可以是`"清水河"`或`"沙河"`，若不指定`--campus`参数，则默认为两个校区。
+
+   ​	`--time_placeholder`：指的是时间占位符，可以设置空闲时间（如：组会时间）。设置格式示例：`星期三第5-6节`。
+
+   ​	`--excel`：上述课程信息`Excel`文件的所在路径。
+
+   ​	`--offset`：跳过前`offset`个可选排课方案，从第`offset`个可选排课方案开始写入MarkDown文件。
+
+   ​	`--maximum`：最多生成`maximum`个可选排课方案，与`offset`参数结合可用于分段生成排课方案（如果不加以限制，当可选排课方案太多时，生成的MarkDown文件太大导致打不开）。
+
+4. 查看在`UESTCourse`文件夹目录下生成的`Schedule.md`，推荐使用[Typora](https://typora.io/)或[Visual Studio Code](https://code.visualstudio.com/)打开。
 
 ### 三、最优化选课
 
@@ -67,5 +108,6 @@
 ### 四、To Do
 
 - [ ] 优化时间冲突检测
-- [ ] 打包成可执行文件
+- [x] 打包成可执行文件
+- [ ] 加入GUI
 
